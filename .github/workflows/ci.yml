@@ -1,0 +1,58 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  validate-structure:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Check docs folder exists
+      run: |
+        if [ ! -d "docs" ]; then
+          echo "Error: /docs folder not found!"
+          exit 1
+        fi
+        echo "✅ /docs folder found"
+    
+    - name: Check required files in docs
+      run: |
+        REQUIRED_FILES=("RaceDay_ERD.png" "API_Endpoint_Plan.md" "RaceDay_Schema.sql")
+        missing_files=0
+        for file in "${REQUIRED_FILES[@]}"; do
+          if [ ! -f "docs/$file" ]; then
+            echo "❌ $file not found in /docs!"
+            missing_files=1
+          else
+            echo "✅ $file found"
+          fi
+        done
+        if [ $missing_files -eq 1 ]; then
+          exit 1
+        fi
+    
+    - name: Check README exists
+      run: |
+        if [ ! -f "README.md" ]; then
+          echo "Error: README.md not found!"
+          exit 1
+        fi
+        echo "✅ README.md found"
+    
+    - name: Check for required sections in README
+      run: |
+        if ! grep -q "CI/CD" README.md; then
+          echo "⚠️  Warning: README.md missing CI/CD section"
+        fi
+        if ! grep -q "YouTube" README.md; then
+          echo "⚠️  Warning: README.md missing YouTube link"
+        fi
+    
+    - name: All validations passed
+      run: echo "✅ All structure validations passed!"
